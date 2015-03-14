@@ -15,6 +15,9 @@
 (defvar company-mode-enable-yas t
   "If non nil enable yasnippet for all backends.")
 
+(defvar company-mode-enable-company-quickhelp t
+  "If non nil enable company-quickhelp.")
+
 (defvar company-mode-use-tab-instead-of-enter nil
   "If non nil use tab instead of enter for completion in company-mode")
 
