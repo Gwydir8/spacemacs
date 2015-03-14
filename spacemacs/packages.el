@@ -2462,11 +2462,11 @@ displayed in the mode-line.")
   (use-package undo-tree
     :init
     (global-undo-tree-mode)
-    ;; (setq undo-tree-auto-save-history t
-    ;;       undo-tree-history-directory-alist
-    ;;       `(("." . ,(concat spacemacs-cache-directory "undo"))))
-    ;; (unless (file-exists-p (concat spacemacs-cache-directory "undo"))
-    ;;     (make-directory (concat spacemacs-cache-directory "undo")))
+    (setq undo-tree-auto-save-history t
+          undo-tree-history-directory-alist
+          `(("." . ,(concat spacemacs-cache-directory "undo"))))
+    (unless (file-exists-p (concat spacemacs-cache-directory "undo"))
+        (make-directory (concat spacemacs-cache-directory "undo")))
     (setq undo-tree-visualizer-timestamps t)
     (setq undo-tree-visualizer-diff t)
     :config
