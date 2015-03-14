@@ -99,6 +99,7 @@ so that you don't have 'do' completed to 'downcase' in Ruby"
 
 (defun company-mode/init-company-quickhelp ()
   (use-package company-quickhelp
+    :if company-mode-enable-company-quickhelp
     :init
     (when (display-graphic-p)
       (add-hook 'company-mode-hook 'company-quickhelp-mode))))
