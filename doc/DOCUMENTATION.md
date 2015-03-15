@@ -139,7 +139,6 @@
         - [Org](#org)
         - [Python](#python)
         - [JavaScript](#javascript)
-        - [rcirc](#rcirc)
         - [HTML and CSS](#html-and-css)
 - [Emacs Server](#emacs-server)
     - [Connecting to the Emacs server](#connecting-to-the-emacs-server)
@@ -2038,6 +2037,10 @@ Key Binding          | Function
 <kbd>SPC m e $</kbd> | go to end of line and evaluate last sexp
 <kbd>SPC m e e</kbd> | evaluate last sexp
 <kbd>SPC m e f</kbd> | evaluate current defun
+<kbd>SPC m e l</kbd> | go to end of line and evaluate last sexp
+
+Key Binding          | Function
+---------------------|------------------------------------------------------------
 <kbd>SPC m g g</kbd> | go to definition
 <kbd>SPC m h h</kbd> | describe elisp thing at point (show documentation)
 <kbd>SPC m t b</kbd> | execute buffer tests
@@ -2207,13 +2210,6 @@ Writing python code with spacemacs is supported by python contribution. Please s
 More featured JavaScript support is provided by the javascript contribution. Please see
 [javascript contribution][javascript-contrib] documentation for detail.
 
-### rcirc
-
-    Key Binding   |                 Description
-------------------|------------------------------------------------------------
-<kbd>CTRL+j</kbd> | next item in command history
-<kbd>CTRL+k</kbd> | previous item in command history
-
 ### HTML and CSS
 
 HTML contribution provides support for editing HTML, CSS, Scss and Less files. Please see
@@ -2297,6 +2293,7 @@ Achievements                                         | Account
 [100th pull request][100th-PR]                       | [bru][]
 [200th pull request][200th-PR]                       | [smt][]
 [300th pull request][300th-PR]                       | [BrianHicks][]
+[400th pull request][400th-PR]                       | [cpaulik][]
 PR gunner (8 PRs in a row)                           | [ralesi][]
 100th fork                                           | [balajisivaraman][]
 100th star                                           | [Jackneill][]
@@ -2411,6 +2408,7 @@ developers to elisp hackers!
 [100th-PR]: https://github.com/syl20bnr/spacemacs/pull/228
 [200th-PR]: https://github.com/syl20bnr/spacemacs/pull/418
 [300th-PR]: https://github.com/syl20bnr/spacemacs/pull/617
+[400th-PR]: https://github.com/syl20bnr/spacemacs/pull/806
 [trishume]:https://github.com/trishume
 [Wolfy87]:https://github.com/Wolfy87
 [danielwuz]:https://github.com/danielwuz
@@ -2418,6 +2416,7 @@ developers to elisp hackers!
 [bjarkevad]:https://github.com/bjarkevad
 [jcpetkovich]:https://github.com/jcpetkovich
 [BrianHicks]:https://github.com/BrianHicks
+[cpaulik]: https://github.com/cpaulik
 [chrisbarrett]:https://github.com/chrisbarrett
 [justrajdeep]:https://github.com/justrajdeep
 [dbohdan]:https://github.com/dbohdan

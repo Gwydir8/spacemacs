@@ -73,7 +73,8 @@ Or set this variable when loading the configuration layer:
 ```clj
 {:user {:plugins [[cider/cider-nrepl "0.9.0-SNAPSHOT"]
                   [refactor-nrepl "0.3.0-SNAPSHOT"]]
-        :dependencies [[alembic "0.3.2"]]}}
+        :dependencies [[alembic "0.3.2"]
+                       [org.clojure/tools.nrepl "0.2.7"]]}}
 ```
 
 #### More details
@@ -122,6 +123,7 @@ More info regarding installation of nREPL middleware can be found here:
 <kbd>SPC m s i</kbd>  | start REPL (cider-jack-in)
 <kbd>SPC m s n</kbd>  | send and eval ns form in REPL
 <kbd>SPC m s N</kbd>  | send and eval ns form and switch to REPL in `insert state`
+<kbd>SPC m s q</kbd>  | kill REPL (cider-quit)
 <kbd>SPC m s r</kbd>  | send and eval region in REPL
 <kbd>SPC m s R</kbd>  | send and eval region and switch to REPL in `insert state`
 <kbd>SPC m s s</kbd>  | switch to REPL
