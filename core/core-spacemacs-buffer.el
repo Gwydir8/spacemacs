@@ -30,7 +30,9 @@ Doge special text banner can be reachable via `999', `doge' or `random*'.
           (spacemacs//insert-image-banner banner)
         (insert-file-contents banner))
       (spacemacs//inject-version)
-      (spacemacs/insert-buttons)
+      (if dotspacemacs-startup-show-buttons
+          (spacemacs/insert-buttons)
+        (insert "\n\n"))
       (spacemacs//redisplay))))
 
 (defun spacemacs//choose-banner ()
