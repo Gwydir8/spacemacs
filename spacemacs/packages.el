@@ -204,8 +204,6 @@ which require an initialization must be listed explicitly in the list.")
     :init
     (add-to-hooks 'auto-complete-mode '(org-mode-hook
                                         prog-mode-hook))
-    :idle (global-auto-complete-mode)
-    :idle-priority 1
     :config
     (progn
       (require 'auto-complete-config)
@@ -260,7 +258,7 @@ which require an initialization must be listed explicitly in the list.")
 
 (defun spacemacs/init-auto-highlight-symbol ()
   (use-package auto-highlight-symbol
-    :commands auto-highlight-symbol-mode
+    :defer t
     :init
     (add-to-hooks 'auto-highlight-symbol-mode '(prog-mode-hook
                                                 markdown-mode-hook))
@@ -424,14 +422,10 @@ which require an initialization must be listed explicitly in the list.")
 
 (defun spacemacs/init-bookmark ()
   (use-package bookmark
-    :commands (bookmark-delete
-               bookmark-jump
-               bookmark-rename
-               bookmark-set)
-    :config
-    (setq
-     bookmark-default-file "~/.emacs.d/bookmarks" ; keep my ~/ clean
-     bookmark-save-flag 1)))                      ; autosave each change
+    :defer t
+    :init
+    (setq bookmark-default-file "~/.emacs.d/bookmarks" ; keep my ~/ clean
+          bookmark-save-flag 1)))                      ; autosave each change
 
 (defun spacemacs/init-buffer-move ()
   (use-package buffer-move
@@ -2251,9 +2245,10 @@ displayed in the mode-line.")
 
       (defun spacemacs//set-powerline-for-startup-buffers ()
         "Set the powerline for buffers created when Emacs starts."
-        (dolist (buffer '("*Messages*" "*spacemacs*" "*Compile-Log*"))
-          (when (get-buffer buffer)
-            (spacemacs//restore-powerline buffer))))
+        (unless configuration-layer-error-count
+          (dolist (buffer '("*Messages*" "*spacemacs*" "*Compile-Log*"))
+            (when (get-buffer buffer)
+              (spacemacs//restore-powerline buffer)))))
       (add-hook 'after-init-hook
                 'spacemacs//set-powerline-for-startup-buffers))))
 
@@ -2487,7 +2482,8 @@ displayed in the mode-line.")
 (defun spacemacs/init-window-numbering ()
   (use-package window-numbering
     ;; not deferred on puprose
-    :init
+    :init (require 'window-numbering)
+    :config
     (progn
       (when (configuration-layer/package-declaredp 'powerline)
         (defun window-numbering-install-mode-line (&optional position)
