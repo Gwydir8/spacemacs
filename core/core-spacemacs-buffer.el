@@ -185,9 +185,10 @@ buffer, right justified."
   (interactive)
   (when (and dotspacemacs-startup-banner
              (not configuration-layer-error-count))
-    (with-current-buffer spacemacs-buffer-name
-      (goto-char (point-min))
-      (re-search-forward "Homepage")
-      (beginning-of-line))))
+    (when dotspacemacs-startup-show-buttons
+        (with-current-buffer spacemacs-buffer-name
+          (goto-char (point-min))
+          (re-search-forward "Homepage")
+          (beginning-of-line)))))
 
 (provide 'core-spacemacs-buffer)
