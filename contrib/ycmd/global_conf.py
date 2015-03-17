@@ -15,6 +15,8 @@ default_flags = [
 'c++',
 # This path will only work on OS X, but extra paths that don't exist are not harmful
 '-isystem'
+  'local',
+'-isystem'
 '/System/Library/Frameworks/Python.framework/Headers',
 '-isystem',
 '/usr/include',
