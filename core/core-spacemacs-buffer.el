@@ -80,13 +80,14 @@ If ALL is non-nil then truly all banners can be selected."
     (let* ((spec (create-image banner))
            (size (image-size spec))
            (width (car size))
-           (left-margin (floor (- spacemacs--banner-length width) 2)))
+           (left-margin (floor (- spacemacs--banner-length width) 1.125)))
       (beginning-of-buffer)
       (insert "\n")
+      (insert "\n\n\n\n\n\n")
       (insert (make-string (- left-margin 1) ?\ ))
       (insert-image spec)
       (insert "\n\n")
-      (insert "                           [S P A C E M A C S]\n\n"))))
+      (insert "                                     [S P A C E M A C S]\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"))))
 
 (defun spacemacs//inject-version ()
   "Inject the current version of spacemacs in the first line of the
