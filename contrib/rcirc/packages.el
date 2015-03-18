@@ -12,7 +12,7 @@ which require an initialization must be listed explicitly in the list.")
 
 (defun rcirc/init-rcirc ()
   (use-package rcirc
-    :commands spacemacs/rcirc
+    :defer t
     :init
     (progn
       (add-to-hook 'rcirc-mode-hook '(flyspell-mode rcirc-omit-mode))
@@ -40,6 +40,7 @@ which require an initialization must be listed explicitly in the list.")
       (defun spacemacs/rcirc (arg)
         "Launch rcirc."
         (interactive "P")
+        (require 'rcirc)
         ;; dispatch to rcirc launcher with appropriate support
         (cond
          (rcirc-enable-authinfo-support (spacemacs//rcirc-with-authinfo arg))
@@ -79,9 +80,9 @@ which require an initialization must be listed explicitly in the list.")
           (insert (emms-track-description (emms-playlist-current-selected-track))))
         (define-key rcirc-mode-map (kbd "C-c C-e") 'rcirc/insert-current-emms-track))
 
-      ;; Minimal logging to `~/.rcirc-logs/channel'
+      ;; Minimal logging to `~/.emacs.d/.cache/rcirc-logs/'
       ;; by courtesy of Trent Buck.
-      (setq rcirc-log-directory "~/.emacs/.cache/rcirc-logs/")
+      (setq rcirc-log-directory (concat spacemacs-cache-directory "/rcirc-logs/"))
       (setq rcirc-log-flag t)
       (defun rcirc-write-log (process sender response target text)
         (when rcirc-log-directory
