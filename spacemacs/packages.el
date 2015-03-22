@@ -32,6 +32,7 @@
     ediff
     elisp-slime-nav
     eldoc
+    eval-sexp-fu
     evil
     evil-anzu
     evil-args
@@ -59,6 +60,7 @@
     fish-mode
     flx-ido
     flycheck
+    flycheck-pos-tip
     flyspell
     ;; required for update
     gh
@@ -78,6 +80,7 @@
     helm-swoop
     helm-themes
     highlight
+    highlight-numbers
     hippie-exp
     hl-anything
     hungry-delete
@@ -550,6 +553,9 @@ which require an initialization must be listed explicitly in the list.")
     :config
     (progn
       (spacemacs|hide-lighter eldoc-mode))))
+
+(defun spacemacs/init-eval-sexp-fu ()
+  (require 'eval-sexp-fu))
 
 (defun spacemacs/init-evil ()
   (use-package evil
@@ -1170,6 +1176,12 @@ which require an initialization must be listed explicitly in the list.")
         "ef" 'flycheck-mode
         "el" 'flycheck-list-errors))))
 
+(defun spacemacs/init-flycheck-pos-tip ()
+  (use-package flycheck-pos-tip
+    :defer t
+    :init
+    (setq flycheck-display-errors-function 'flycheck-pos-tip-error-messages)))
+
 (defun spacemacs/init-flyspell ()
   (use-package flyspell
     :defer t
@@ -1313,8 +1325,12 @@ which require an initialization must be listed explicitly in the list.")
             helm-bookmark-show-location t
             helm-buffers-fuzzy-matching t
             helm-always-two-windows     t)
+      ;; use helm by default for M-x
+      (unless (configuration-layer/package-declaredp 'smex)
+        (global-set-key (kbd "M-x") 'helm-M-x))
       (evil-leader/set-key
         "bs"  'helm-mini
+        "Cl"  'helm-colors
         "sl"  'helm-semantic-or-imenu
         "hb"  'helm-bookmarks
         "hl"  'helm-resume
@@ -1329,7 +1345,8 @@ which require an initialization must be listed explicitly in the list.")
       ;; to overwrite any key binding
       (add-hook 'after-init-hook
                 (lambda ()
-                  (evil-leader/set-key dotspacemacs-command-key 'helm-M-x)))
+                  (unless (configuration-layer/package-declaredp 'smex)
+                    (evil-leader/set-key dotspacemacs-command-key 'helm-M-x))))
 
       (defun spacemacs//helm-before-initialize ()
         "Stuff to do before helm initializes."
@@ -1352,6 +1369,14 @@ which require an initialization must be listed explicitly in the list.")
     :config
     (progn
       (helm-mode +1)
+      (defun spacemacs//set-dotted-directory ()
+        "Set the face of diretories for `.' and `..'"
+        (set-face-attribute 'helm-ff-dotted-directory
+                            nil
+                            :foreground nil
+                            :background nil
+                            :inherit 'helm-ff-directory))
+      (add-hook 'helm-find-files-before-init-hook 'spacemacs//set-dotted-directory)
       ;; alter helm-bookmark key bindings to be simpler
       (defun simpler-helm-bookmark-keybindings ()
         (define-key helm-bookmark-map (kbd "C-d") 'helm-bookmark-run-delete)
@@ -1550,7 +1575,16 @@ which require an initialization must be listed explicitly in the list.")
   (use-package helm-themes
     :defer t
     :init
-    (evil-leader/set-key "Th" 'helm-themes)))
+    (evil-leader/set-key
+      "Th" 'helm-themes)))
+
+(defun spacemacs/init-highlight-numbers ()
+  (use-package highlight-numbers
+    :defer t
+    :init
+    (progn
+      (add-hook 'prog-mode-hook 'highlight-numbers-mode)
+      (add-hook 'asm-mode-hook (lambda () (highlight-numbers-mode -1))))))
 
 (defun spacemacs/init-hippie-exp ()
   (global-set-key (kbd "M-/") 'hippie-expand) ;; replace dabbrev-expand

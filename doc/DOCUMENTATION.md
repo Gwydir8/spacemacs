@@ -1196,6 +1196,7 @@ Windows manipulation commands (start with `w`):
 
 Key Binding                               |                 Description
 ------------------------------------------|----------------------------------------------------------------
+<kbd>SPC w =</kbd>                        | balance split windows
 <kbd>SPC w b</kbd>                        | force the focus back to the minibuffer (usefull with `helm` popups)
 <kbd>SPC w c</kbd>                        | close a window
 <kbd>SPC w C</kbd>                        | delete another window using [ace-delete-window][ace-window]
@@ -1670,6 +1671,9 @@ Key Binding                   |                    Description
 <kbd>P</kbd>                  | in micro-state: replace paste text with the next copied one
 <kbd>.</kbd>                  | paste the same text and leave the micro-state
 Any other key                 | leave the micro-state
+
+This micro-state can be disabled by setting
+`dotspacemacs-enable-paste-micro-state` to `nil` in `~/.spacemacs`.
 
 ### Text manipulation commands
 
