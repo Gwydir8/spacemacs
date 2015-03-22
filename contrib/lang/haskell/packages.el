@@ -13,7 +13,6 @@
 (defvar haskell-packages
   '(
     company-ghc
-    flycheck
     flycheck-haskell
     ghc
     haskell-mode
@@ -23,9 +22,9 @@
     ))
 
 (defun haskell/init-flycheck-haskell ()
-  (add-hook 'haskell-mode-hook 'flycheck-mode)
-  (add-hook 'flycheck-mode-hook 'flycheck-haskell-setup)
-  (setq flycheck-display-errors-delay 0))
+  (use-package flycheck-haskell
+    :defer t
+    :init (add-hook 'haskell-mode-hook 'flycheck-haskell-setup)))
 
 (defun haskell/init-shm ()
   (use-package shm
@@ -90,7 +89,6 @@
     :defer t
     :config
     (progn
-
       ;; Customization
       (custom-set-variables
 
@@ -224,10 +222,16 @@
 
 (defun haskell/init-company-ghc ()
   (use-package company-ghc
-    :if (configuration-layer/layer-declaredp 'company-mode)
+    :if (configuration-layer/package-declaredp 'company)
+    :defer t
     :init
     (progn
-      (add-to-list 'company-backends (company-mode/backend-with-yas 'company-ghc)))))
+      (spacemacs|reset-local-company-backends haskell-mode)
+      (defun spacemacs//ghc-company-backend ()
+        "Add GHC company backend."
+        (push (spacemacs/company-backend-with-yas 'company-ghc)
+              company-backends))
+      (add-hook 'haskell-mode-hook 'spacemacs//ghc-company-backend t))))
 
 (defun haskell/init-hi2 ()
   (use-package hi2

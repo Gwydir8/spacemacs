@@ -129,10 +129,6 @@ not play nicely with autoloads"
        (define-key inferior-ess-mode-map (kbd "C-j") 'comint-next-input)
        (define-key inferior-ess-mode-map (kbd "C-k") 'comint-previous-input))))
 
-(defun ess/init-ess-R-data-view ())
-
-(defun ess/init-ess-R-object-popup ())
-
 (defun ess/init-rainbow-delimiters ()
   (add-hook 'ess-mode-hook #'rainbow-delimiters-mode))
 
@@ -147,6 +143,13 @@ not play nicely with autoloads"
 
 (defun ess/init-company-ess ()
   (use-package company-ess
+    :if (configuration-layer/package-declaredp 'company)
     :defer t
     :init
-    (add-to-list 'company-backends (company-mode/backend-with-yas 'company-ess-backend))))
+    (progn
+      (spacemacs|reset-local-company-backends ess-mode)
+      (defun spacemacs//ess-company-backend ()
+        "Add ESS company backend."
+        (push (spacemacs/company-backend-with-yas 'company-ess-backend)
+              company-backends))
+      (add-hook 'ess-mode-hook 'spacemacs//ess-company-backend t))))
