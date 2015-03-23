@@ -466,10 +466,25 @@ which require an initialization must be listed explicitly in the list.")
 (defun spacemacs/init-doc-view ()
   (use-package doc-view
     :defer t
+    :init
+    (evilify doc-view-mode doc-view-mode-map
+             "/"  'spacemacs/doc-view-search-new-query
+             "?"  'spacemacs/doc-view-search-new-query-backward
+             "gg" 'doc-view-first-page
+             "G"  'doc-view-last-page
+             "gt" 'doc-view-goto-page
+             "h"  'doc-view-previous-page
+             "j"  'doc-view-next-line-or-next-page
+             "k"  'doc-view-previous-line-or-previous-page
+             "K"  'doc-view-kill-proc-and-buffer
+             "l"  'doc-view-next-page
+             "n"  'doc-view-search
+             "N"  'doc-view-search-backward
+             (kbd "C-d") 'doc-view-scroll-up-or-next-page
+             (kbd "C-k") 'doc-view-kill-proc
+             (kbd "C-u") 'doc-view-scroll-down-or-previous-page)
     :config
     (progn
-      (add-to-list 'evil-emacs-state-modes 'doc-view-mode)
-
       (defun spacemacs/doc-view-search-new-query ()
         "Initiate a new query."
         (interactive)
@@ -489,25 +504,7 @@ which require an initialization must be listed explicitly in the list.")
               ad-do-it
               (text-mode)
               (doc-view-minor-mode))
-          ad-do-it))
-
-      (spacemacs|evilify doc-view-mode-map
-                         "/"  'spacemacs/doc-view-search-new-query
-                         "?"  'spacemacs/doc-view-search-new-query-backward
-                         "gg" 'doc-view-first-page
-                         "G"  'doc-view-last-page
-                         "gt" 'doc-view-goto-page
-                         "h"  'doc-view-previous-page
-                         "j"  'doc-view-next-line-or-next-page
-                         "k"  'doc-view-previous-line-or-previous-page
-                         "K"  'doc-view-kill-proc-and-buffer
-                         "l"  'doc-view-next-page
-                         "n"  'doc-view-search
-                         "N"  'doc-view-search-backward
-                         (kbd "C-d") 'doc-view-scroll-up-or-next-page
-                         (kbd "C-k") 'doc-view-kill-proc
-                         (kbd "C-u") 'doc-view-scroll-down-or-previous-page)
-      (spacemacs/activate-evil-leader-for-map 'doc-view-mode-map))))
+          ad-do-it)))))
 
 ;; notes from mijoharas
 ;; We currently just set a few variables to make it look nicer.
@@ -564,6 +561,7 @@ which require an initialization must be listed explicitly in the list.")
       (defvar spacemacs-evil-cursor-colors '((normal . "DarkGoldenrod2")
                                              (insert . "chartreuse3")
                                              (emacs  . "SkyBlue2")
+                                             (evilified . "yellow")
                                              (visual . "gray")
                                              (motion . "plum3")
                                              (lisp   . "HotPink1")
@@ -615,6 +613,10 @@ which require an initialization must be listed explicitly in the list.")
         (let ((c (when dotspacemacs-colorize-cursor-according-to-state
                    (spacemacs/state-color 'emacs))))
           (setq evil-emacs-state-cursor `(,c box))))
+      (defun set-default-evil-evilified-state-cursor ()
+        (let ((c (when dotspacemacs-colorize-cursor-according-to-state
+                   (spacemacs/state-color 'evilified))))
+          (setq evil-evilified-state-cursor `(,c box))))
       (defun set-default-evil-normal-state-cursor ()
         (let ((c (when dotspacemacs-colorize-cursor-according-to-state
                    (spacemacs/state-color 'normal))))
@@ -646,6 +648,7 @@ which require an initialization must be listed explicitly in the list.")
       (defun evil-insert-state-cursor-hide ()
         (setq evil-insert-state-cursor '((hbar . 0))))
       (set-default-evil-emacs-state-cursor)
+      (set-default-evil-evilified-state-cursor)
       (set-default-evil-normal-state-cursor)
       (set-default-evil-insert-state-cursor)
       (set-default-evil-visual-state-cursor)
@@ -1299,6 +1302,8 @@ which require an initialization must be listed explicitly in the list.")
                                            ,dotspacemacs-emacs-leader-key
                                            ,dotspacemacs-major-mode-leader-key
                                            ,dotspacemacs-major-mode-emacs-leader-key
+                                           "<ESC>n"
+                                           "<ESC>m"
                                            "g"
                                            "z"
                                            "C-h")
@@ -1377,6 +1382,7 @@ which require an initialization must be listed explicitly in the list.")
                             :background nil
                             :inherit 'helm-ff-directory))
       (add-hook 'helm-find-files-before-init-hook 'spacemacs//set-dotted-directory)
+
       ;; alter helm-bookmark key bindings to be simpler
       (defun simpler-helm-bookmark-keybindings ()
         (define-key helm-bookmark-map (kbd "C-d") 'helm-bookmark-run-delete)
@@ -1385,11 +1391,23 @@ which require an initialization must be listed explicitly in the list.")
         (define-key helm-bookmark-map (kbd "C-o") 'helm-bookmark-run-jump-other-window)
         (define-key helm-bookmark-map (kbd "C-/") 'helm-bookmark-help))
       (add-hook 'helm-mode-hook 'simpler-helm-bookmark-keybindings)
+
       ;; helm navigation on hjkl
-      (define-key helm-map (kbd "C-j") 'helm-next-line)
-      (define-key helm-map (kbd "C-k") 'helm-previous-line)
-      (define-key helm-map (kbd "C-h") 'helm-next-source)
-      (define-key helm-map (kbd "C-l") 'helm-previous-source)
+      (defun spacemacs//helm-hjkl-navigation (&optional arg)
+        "Set navigation in helm on `jklh'.
+ARG non nil means that the editing style is `vim'."
+        (cond
+         (arg
+          (define-key helm-map (kbd "C-j") 'helm-next-line)
+          (define-key helm-map (kbd "C-k") 'helm-previous-line)
+          (define-key helm-map (kbd "C-h") 'helm-next-source)
+          (define-key helm-map (kbd "C-l") 'helm-previous-source))
+         (t
+          (define-key helm-map (kbd "C-j") 'helm-execute-persistent-action)
+          (define-key helm-map (kbd "C-k") 'helm-delete-minibuffer-contents)
+          (define-key helm-map (kbd "C-h") nil)
+          (define-key helm-map (kbd "C-l") 'helm-recenter-top-bottom-other-window))))
+      (spacemacs//helm-hjkl-navigation (eq 'vim dotspacemacs-editing-style))
 
       ;; eshell
       (defun spacemacs/helm-eshell-history ()
@@ -1674,18 +1692,21 @@ Put (global-hungry-delete-mode) in dotspacemacs/config to enable by default."
         (setq spacemacs--ido-navigation-ms-enabled nil)
         ;; overwrite the key bindings for ido vertical mode only
         (define-key ido-completion-map (kbd "C-d") 'ido-delete-file-at-head)
-        (define-key ido-completion-map (kbd "C-k") 'ido-prev-match)
         (define-key ido-completion-map (kbd "C-<return>") 'ido-select-text)
         ;; use M-RET in terminal
         (define-key ido-completion-map "\M-\r" 'ido-select-text)
         (define-key ido-completion-map (kbd "C-h") 'ido-delete-backward-updir)
         (define-key ido-completion-map (kbd "C-j") 'ido-next-match)
+        (define-key ido-completion-map (kbd "C-k") 'ido-prev-match)
         (define-key ido-completion-map (kbd "C-l") 'ido-exit-minibuffer)
-        (define-key ido-completion-map (kbd "C-S-j") 'ido-next-match-dir)
-        (define-key ido-completion-map (kbd "C-S-k") 'ido-prev-match-dir)
-        ;; history navigation
-        (define-key ido-completion-map (kbd "C-n") 'next-history-element)
-        (define-key ido-completion-map (kbd "C-p") 'previous-history-element)
+        (define-key ido-completion-map (kbd "C-n") 'ido-next-match)
+        (define-key ido-completion-map (kbd "C-p") 'ido-prev-match)
+        (define-key ido-completion-map (kbd "C-S-h") 'ido-prev-match-dir)
+        (define-key ido-completion-map (kbd "C-S-j") 'next-history-element)
+        (define-key ido-completion-map (kbd "C-S-k") 'previous-history-element)
+        (define-key ido-completion-map (kbd "C-S-l") 'ido-next-match-dir)
+        (define-key ido-completion-map (kbd "C-S-n") 'next-history-element)
+        (define-key ido-completion-map (kbd "C-S-p") 'previous-history-element)
         ;; ido-other window maps
         (define-key ido-completion-map (kbd "C-o") 'ido-invoke-in-other-window)
         (define-key ido-completion-map (kbd "C-s") 'ido-invoke-in-vertical-split)
@@ -1959,7 +1980,7 @@ Put (global-hungry-delete-mode) in dotspacemacs/config to enable by default."
     :commands paradox-list-packages
     :init
     (progn
-
+      (setq paradox-execute-asynchronously nil)
       (defun spacemacs/paradox-list-packages ()
         "Load depdendencies for auth and open the package list."
         (interactive)
@@ -1979,19 +2000,14 @@ Put (global-hungry-delete-mode) in dotspacemacs/config to enable by default."
                                            paradox-token)))))
         (paradox-list-packages nil))
 
-      (add-to-list 'evil-emacs-state-modes 'paradox-menu-mode)
-      (spacemacs|evilify paradox-menu-mode-map
-        "H" 'paradox-menu-quick-help
-        "J" 'paradox-next-describe
-        "K" 'paradox-previous-describe
-        "L" 'paradox-menu-view-commit-list
-        "o" 'paradox-menu-visit-homepage)
+      (evilify paradox-menu-mode paradox-menu-mode-map
+               "H" 'paradox-menu-quick-help
+               "J" 'paradox-next-describe
+               "K" 'paradox-previous-describe
+               "L" 'paradox-menu-view-commit-list
+               "o" 'paradox-menu-visit-homepage)
       (evil-leader/set-key
-        "aP" 'spacemacs/paradox-list-packages))
-    :config
-    (setq paradox-execute-asynchronously nil)
-    (spacemacs/activate-evil-leader-for-map 'paradox-menu-mode-map)
-    ))
+        "aP" 'spacemacs/paradox-list-packages))))
 
 (defun spacemacs/init-popup ()
   (use-package popup

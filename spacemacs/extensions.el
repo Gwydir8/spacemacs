@@ -12,7 +12,11 @@
 
 ;; Extensions are in emacs_paths/extensions
 ;; Pre extensions are loaded *before* the packages
-(defvar spacemacs-pre-extensions '())
+(defvar spacemacs-pre-extensions
+  '(
+    evil-evilified-state
+    holy-mode
+    ))
 
 ;; Post extensions are loaded *after* the packages
 (defvar spacemacs-post-extensions
@@ -20,10 +24,11 @@
     centered-cursor
     emoji-cheat-sheet
     helm-spacemacs
-    holy-mode
     solarized-theme
     spray
     zoom-frm
+    ;; hack to be able to wrap built-in emacs modes in an init function
+    emacs-builtin-process-menu
     ))
 
 ;; use the last 24.3 compatible version of paradox as
@@ -35,6 +40,9 @@
     (push 'paradox spacemacs-post-extensions))
 
 ;; Initialize the extensions
+
+(defun spacemacs/init-evil-evilified-state ()
+  (require 'evil-evilified-state))
 
 (defun spacemacs/init-centered-cursor ()
   (use-package centered-cursor-mode
@@ -62,10 +70,12 @@
     :init
     (when (eq 'emacs dotspacemacs-editing-style)
       (holy-mode))
-    ;; secret cheat code
-    (global-set-key
-      (kbd "C-` <up><up><down><down><left><right><left><right>ab")
-      'holy-mode)))
+    (spacemacs|add-toggle holy-mode
+                          :status holy-mode
+                          :on (holy-mode)
+                          :off (holy-mode -1)
+                          :documentation "Globally toggle the holy mode."
+                          :evil-leader "P <tab>" "P C-i")))
 
 (defun spacemacs/init-helm-spacemacs ()
   (use-package helm-spacemacs
@@ -169,3 +179,6 @@ otherwise it is reduced."
         "zf+"  'spacemacs/zoom-in-frame
         "zf-"  'spacemacs/zoom-out-frame
         "zf="  'spacemacs/reset-zoom))))
+
+(defun spacemacs/init-emacs-builtin-process-menu ()
+  (evilify process-menu-mode process-menu-mode-map))

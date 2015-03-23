@@ -52,6 +52,11 @@ The `insert state' is replaced by the `emacs state'."
 
 (defun in-nominus-patris-et-filii-et-sipritus-sancti ()
   "Enter the church of Emacs (wash your hands)."
+  ;; transfert all modes defaulting to `evilified state' to
+  ;; `emacs state'
+  (setq evil-evilified-state-modes nil)
+  (mapc (lambda (x) (push x evil-emacs-state-modes))
+        evil-evilified-state--modes)
   ;; allow to return to `normal state' with escape
   (define-key evil-emacs-state-map [escape] 'evil-normal-state)
   ;; replace `insert state' by `emacs state'
@@ -67,11 +72,18 @@ The `insert state' is replaced by the `emacs state'."
   (setq evil-normal-state-modes nil)
   (setq holy-mode-motion-state-modes-backup evil-motion-state-modes)
   (setq evil-motion-state-modes nil)
+  ;; helm navigation
+  (when (fboundp 'spacemacs//helm-hjkl-navigation)
+    (spacemacs//helm-hjkl-navigation nil))
   ;; initiate `emacs state' and enter the church
-  (evil-emacs-state))
+  (holy-mode//update-states-for-current-buffers))
 
 (defun amen ()
   "May the force be with you my son (or not)."
+  ;; restore default `evilified state'
+  (mapc (lambda (x) (delq x evil-emacs-state-modes))
+        evil-evilified-state--modes)
+  (setq evil-evilified-state-modes evil-evilified-state--modes)
   ;; restore `insert state'
   (ad-disable-advice 'evil-insert-state 'around 'benedictus-dominus)
   (ad-activate 'evil-insert-state)
@@ -80,5 +92,25 @@ The `insert state' is replaced by the `emacs state'."
   ;; restore per mode default states
   (setq evil-normal-state-modes holy-mode-normal-state-modes-backup)
   (setq evil-motion-state-modes holy-mode-motion-state-modes-backup)
+  ;; restore helm navigation
+  (when (fboundp 'spacemacs//helm-hjkl-navigation)
+    (spacemacs//helm-hjkl-navigation t))
   ;; (set-default-evil-emacs-state-cursor)
-  (evil-normal-state))
+  ;; restore the states
+  (holy-mode//update-states-for-current-buffers t))
+
+(defun holy-mode//update-states-for-current-buffers (&optional arg)
+  "Update the active state in all current buffers.
+ARG non nil means that the editing style is `vim'."
+  (dolist (buffer (buffer-list))
+    (with-current-buffer buffer
+      ;; switch to holy-mode
+      (when (and (not arg) (or (eq 'evilified evil-state)
+                         (eq 'normal evil-state)))
+        (evil-emacs-state))
+      ;; disable holy-mode
+      (when (and arg (eq 'emacs evil-state))
+        (cond
+         ((memq major-mode evil-evilified-state-modes) (evil-evilified-state))
+         ((memq major-mode evil-motion-state-modes) (evil-motion-state))
+         (t (evil-normal-state)))))))
