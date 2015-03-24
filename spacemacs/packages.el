@@ -85,6 +85,7 @@
     hl-anything
     hungry-delete
     ido-vertical-mode
+    info+
     iedit
     let-alist
     leuven-theme
@@ -427,8 +428,9 @@ which require an initialization must be listed explicitly in the list.")
   (use-package bookmark
     :defer t
     :init
-    (setq bookmark-default-file "~/.emacs.d/bookmarks" ; keep my ~/ clean
-          bookmark-save-flag 1)))                      ; autosave each change
+    (setq bookmark-default-file (concat user-emacs-directory "bookmarks")
+          ;; autosave each change
+          bookmark-save-flag 1)))
 
 (defun spacemacs/init-buffer-move ()
   (use-package buffer-move
@@ -1302,8 +1304,10 @@ which require an initialization must be listed explicitly in the list.")
                                            ,dotspacemacs-emacs-leader-key
                                            ,dotspacemacs-major-mode-leader-key
                                            ,dotspacemacs-major-mode-emacs-leader-key
-                                           "<ESC>n"
+                                           ;; M-m in terminal
                                            "<ESC>m"
+                                           ;; C-M-m in terminal
+                                           "<ESC><RET>"
                                            "g"
                                            "z"
                                            "C-h")
@@ -1352,6 +1356,14 @@ which require an initialization must be listed explicitly in the list.")
                 (lambda ()
                   (unless (configuration-layer/package-declaredp 'smex)
                     (evil-leader/set-key dotspacemacs-command-key 'helm-M-x))))
+
+      ;; disable popwin-mode in an active Helm session It should be disabled
+      ;; otherwise it will conflict with other window opened by Helm persistent
+      ;; action, such as *Help* window.
+      (add-hook 'helm-after-initialize-hook (lambda () (popwin-mode -1)))
+
+      ;;  Restore popwin-mode after a Helm session finishes.
+      (add-hook 'helm-cleanup-hook (lambda () (popwin-mode 1)))
 
       (defun spacemacs//helm-before-initialize ()
         "Stuff to do before helm initializes."
@@ -1794,6 +1806,14 @@ Put (global-hungry-delete-mode) in dotspacemacs/config to enable by default."
 (defun spacemacs/init-iedit ()
   (use-package iedit
     :defer t))
+
+(defun spacemacs/init-info+ ()
+  (use-package info+
+    :defer t
+    :init
+    (add-hook 'Info-mode-hook (lambda () (require 'info+)))
+    :config
+    (setq Info-fontify-angle-bracketed-flag nil)))
 
 (defun spacemacs/init-leuven-theme ()
   (use-package leuven-theme
@@ -2389,9 +2409,9 @@ displayed in the mode-line.")
                                            (recentf-track-opened-file))))
     :config
     (progn
-      (setq recentf-exclude '("~/.emacs.d/.cache"))
+      (setq recentf-exclude '(spacemacs-cache-directory))
       (add-to-list 'recentf-exclude "COMMIT_EDITMSG\\'")
-      (setq recentf-save-file (concat spacemacs-cache-directory "/recentf"))
+      (setq recentf-save-file (concat spacemacs-cache-directory "recentf"))
       (setq recentf-max-saved-items 100)
       (setq recentf-auto-cleanup 'never)
       (setq recentf-auto-save-timer (run-with-idle-timer 600 t 'recentf-save-list)))))

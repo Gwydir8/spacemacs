@@ -996,6 +996,11 @@ It is possible to change this key with the variable `dotspacemacs-leader-key`.
 `<SPC> o` is **guaranteed** to never conflict with `Spacemacs` defaults key
 bindings.
 
+**Example:**
+Put `(evil-leader/set-key "oc" 'org-capture)` inside `dotspacemacs/config`
+in your `~/.spacemacs` file, to be able to use <kbd>SPC o c</kbd> to run
+org mode capture.
+
 ## Helm
 
 `Spacemacs` is powered by [Helm][helm-link] which is an incremental completion
@@ -1010,7 +1015,7 @@ to read the [Helm documentation wiki][helm-doc].
 ### Helm micro-state
 
 `Spacemacs` defines a [micro-state](#micro-states) for `Helm` to make it
-work like [Vim's Unit][] plugin.
+work like [Vim's Unite][] plugin.
 
 Initiate the micro-state with <kbd>C-SPC</kbd> while in a `Helm` buffer.
 Use <kbd>C-SPC</kbd> again to exit from the micro-state.
@@ -2213,18 +2218,19 @@ In `org`, [evil-org-mode][] is activated.
 
 ### Python
 
-Writing python code with spacemacs is supported by python contribution. Please see
-[python contribution][python-contrib] documentation for detail.
+Writing python code with spacemacs is supported by python contribution. Please
+see [python contribution][python-contrib] documentation for detail.
 
 ### JavaScript
 
-More featured JavaScript support is provided by the javascript contribution. Please see
-[javascript contribution][javascript-contrib] documentation for detail.
+More featured JavaScript support is provided by the javascript
+contribution. Please see [javascript contribution][javascript-contrib]
+documentation for detail.
 
 ### HTML and CSS
 
-HTML contribution provides support for editing HTML, CSS, Scss and Less files. Please see
-[html contribution][html-contrib] documentation for detail.
+HTML contribution provides support for editing HTML, CSS, Scss and Less
+files. Please see [html contribution][html-contrib] documentation for detail.
 
 # Emacs Server
 
@@ -2233,7 +2239,21 @@ your Emacs windows.
 
 ## Connecting to the Emacs server
 
-TODO
+You can open a file in Emacs from the terminal using `emacsclient`. Use
+`emacsclient -c` to open the file in Emacs GUI. Use `emacsclient -t` to open
+the file in Emacs within the terminal.
+
+If you want your Linux/OS X system to use Emacs by default for any prompt, use
+`export EDITOR="emacsclient -c"` in your shell configuration.
+
+Note that if you're on OS X, you may have to refer to the emacsclient that comes
+with your GUI Emacs, e.g. `export
+EDITOR="/Applications/Emacs.app/Contents/MacOS/bin/emacsclient -c"`.
+
+Tip: Remember to use `:qw` or `C-x #` after you are done editing the file
+in Emacs.
+
+See [Emacs as a Server][] in the official Emacs manual for more details.
 
 ## Keeping the server alive
 
@@ -2372,7 +2392,7 @@ developers to elisp hackers!
 [evil-numbers]: https://github.com/cofi/evil-numbers
 [evil-org-mode]: https://github.com/edwtjo/evil-org-mode
 [evil-lisp-state]: https://github.com/syl20bnr/evil-lisp-state
-[Vim's Unit]: https://github.com/Shougo/unite.vim
+[Vim's Unite]: https://github.com/Shougo/unite.vim
 [git-gutter]: https://github.com/syohex/emacs-git-gutter-fringe
 [nose]: https://github.com/nose-devs/nose/
 [nose.el]: https://github.com/syl20bnr/nose.el
@@ -2440,3 +2460,4 @@ developers to elisp hackers!
 [Paradox]: https://github.com/Bruce-Connor/paradox
 [fancy-battery]: https://github.com/lunaryorn/fancy-battery.el
 [MacType]: https://code.google.com/p/mactype/
+[Emacs as a Server]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Emacs-Server.html
