@@ -314,7 +314,7 @@ the documentation for more details.
 ## Editing Styles
 
 Spacemacs can be used by Vim users or Emacs users by setting the
-`dotspacemacs-editing-style` variable to `vim` or `emacs` in the dotfile
+`dotspacemacs-editing-style` variable to `'vim` or `'emacs` in the dotfile
 `~/.spacemacs`.
 
 ## The leader key
