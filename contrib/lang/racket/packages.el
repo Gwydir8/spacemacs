@@ -1,5 +1,23 @@
 (defvar racket-packages
-  '(racket-mode))
+  '(
+    company
+    company-quickhelp-mode
+    racket-mode
+    ))
+
+(defun racket/post-init-company ()
+  ;; this is the only thing to do to enable company in racket-mode
+  ;; because racket-mode handle everything for us when company
+  ;; is loaded.
+  (add-hook 'racket-mode-hook 'company-mode))
+
+(defun racket/post-init-company-quickhelp ()
+  ;; Bug exists in Racket company backend that opens docs in new window when
+  ;; company-quickhelp calls it. Note hook is appendended for proper ordering.
+  (add-hook 'company-mode-hook
+            '(lambda ()
+               (when (equal major-mode 'racket-mode)
+                 (company-quickhelp-mode -1))) t))
 
 (defun racket/init-racket-mode ()
   (use-package racket-mode
@@ -10,8 +28,8 @@
       (eval-after-load 'smartparens
         '(progn (add-to-list 'sp--lisp-modes 'racket-mode)
                 (when (fboundp 'sp-local-pair)
+                  (sp-local-pair 'racket-mode "'" nil :actions nil)
                   (sp-local-pair 'racket-mode "`" nil :actions nil))))
-      (sp-local-pair 'racket-mode "'" nil :actions nil)
 
       (defun spacemacs/racket-test-with-coverage ()
         "Call `racket-test' with universal argument."
@@ -67,9 +85,4 @@
         ;; Tests
         "mtb" 'racket-test
         "mtB" 'spacemacs/racket-test-with-coverage)
-      (define-key racket-mode-map (kbd "H-r") 'racket-run)
-      ;; Bug exists in Racket company backend that opens docs in new window when
-      ;; company-quickhelp calls it. Note hook is appendended for proper ordering.
-      (when (configuration-layer/package-declaredp 'company-quickhelp)
-        (add-hook 'company-mode-hook
-                  '(lambda () (when (equal major-mode 'racket-mode) (company-quickhelp-mode -1))) t)))))
+      (define-key racket-mode-map (kbd "H-r") 'racket-run))))

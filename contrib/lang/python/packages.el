@@ -13,11 +13,13 @@
 (defvar python-packages
   '(
     anaconda-mode
-    ac-anaconda
+    company
     company-anaconda
+    cython-mode
     eldoc
     evil-jumper
     flycheck
+    helm-pydoc
     hy-mode
     pony-mode
     pyenv-mode
@@ -25,23 +27,9 @@
     python
     semantic
     smartparens
-    cython-mode
     )
   "List of all packages to install and/or initialize. Built-in packages
 which require an initialization must be listed explicitly in the list.")
-
-(defun python/init-ac-anaconda ()
-  (use-package ac-anaconda
-    :if (boundp 'ac-sources)
-    :defer t
-    :init
-    (progn
-      (add-hook 'python-mode-hook 'ac-anaconda-setup)
-      (evilify anaconda-nav-mode anaconda-nav-mode-map
-               (kbd "H") 'previous-error
-               (kbd "J") 'anaconda-nav-next-module
-               (kbd "K") 'anaconda-nav-previous-module
-               (kbd "L") 'next-error))))
 
 (defun python/init-anaconda-mode ()
   (use-package anaconda-mode
@@ -53,14 +41,6 @@ which require an initialization must be listed explicitly in the list.")
         "mhh" 'anaconda-mode-view-doc
         "mgg"  'anaconda-mode-goto)
       (spacemacs|hide-lighter anaconda-mode))))
-
-(defun python/init-company-anaconda ()
-  (use-package company-anaconda
-    :if (configuration-layer/layer-declaredp 'company-mode)
-    :defer t
-    :init
-    (progn
-      (spacemacs|add-local-company-backend python-mode company-anaconda))))
 
 (defun python/init-cython-mode ()
   (use-package cython-mode
@@ -246,9 +226,15 @@ which require an initialization must be listed explicitly in the list.")
 (defun python/init-flycheck ()
   (add-hook 'python-mode-hook 'flycheck-mode))
 
-(defun spacemacs/init-hy-mode ()
+(defun python/init-hy-mode ()
   (use-package hy-mode
     :defer t))
+
+(defun python/init-helm-pydoc ()
+  (use-package helm-pydoc
+    :defer t
+    :init
+    (evil-leader/set-key-for-mode 'python-mode "mhd" 'helm-pydoc)))
 
 (defun python/init-semantic ()
   ;; required to correctly load semantic mode
@@ -263,3 +249,18 @@ which require an initialization must be listed explicitly in the list.")
       (if pythonp
           ad-do-it
         (call-interactively 'sp-backward-delete-char)))))
+
+(when (configuration-layer/layer-usedp 'auto-completion)
+  (defun python/post-init-company ()
+    (spacemacs|add-company-hook python-mode))
+
+  (defun python/init-company-anaconda ()
+    (use-package company-anaconda
+      :if (configuration-layer/package-usedp 'company)
+      :defer t
+      :init
+      ;; we don't use the yasnippet backend here because it
+      ;; produces some weird bug in company-anaconda back end
+      ;; (like the f, s, v suffix being at the wrong place in the
+      ;; completion menu)
+      (push 'company-anaconda company-backends-python-mode))))

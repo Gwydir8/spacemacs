@@ -169,6 +169,57 @@ the current state and point position."
           (message "Indented buffer.")))
       (whitespace-cleanup))))
 
+;; linum gutter helpers
+(defvar *linum-mdown-line* nil
+  "Define persistent variable for linum selection")
+
+(defun spacemacs/line-at-click ()
+  "Determine the visual line at click"
+  (save-excursion
+    (let ((click-y (cddr (mouse-position)))
+          (debug-on-error t)
+          (line-move-visual t))
+      (goto-char (window-start))
+      (next-line (1- click-y))
+      (1+ (line-number-at-pos))
+      )))
+
+(defun spacemacs/md-select-linum (event)
+  "Set point as *linum-mdown-line*"
+  (interactive "e")
+  (mouse-select-window event)
+  (goto-line (spacemacs/line-at-click))
+  (set-mark (point))
+  (setq *linum-mdown-line*
+        (line-number-at-pos)))
+
+(defun spacemacs/mu-select-linum ()
+  "Select code block between point and *linum-mdown-line*"
+  (interactive)
+  (when *linum-mdown-line*
+    (let (mu-line)
+      (setq mu-line (spacemacs/line-at-click))
+      (goto-line (max *linum-mdown-line* mu-line))
+      (set-mark (line-end-position))
+      (goto-line (min *linum-mdown-line* mu-line))
+      (setq *linum-mdown*
+            nil))))
+
+(defun spacemacs/select-current-block ()
+  "Select the current block of text between blank lines."
+  (interactive)
+  (let (p1 p2)
+    (progn
+      (if (re-search-backward "\n[ \t]*\n" nil "move")
+          (progn (re-search-forward "\n[ \t]*\n")
+                 (setq p1 (point)))
+        (setq p1 (point)))
+      (if (re-search-forward "\n[ \t]*\n" nil "move")
+          (progn (re-search-backward "\n[ \t]*\n")
+                 (setq p2 (point)))
+        (setq p2 (point))))
+    (set-mark p1)))
+
 ;; from magnars
 (defun eval-and-replace ()
   "Replace the preceding sexp with its value."
@@ -777,26 +828,51 @@ If ASCII si not provided then UNICODE is used instead."
   (let ((comint-buffer-maximum-size 0))
     (comint-truncate-buffer)))
 
-(defun spacemacs//make-company-backends-buffer-local ()
-  "Helper to make `company-backends' buffer local and reset it."
-  (set (make-variable-buffer-local 'company-backends) nil))
+;; begin Auto-completion helpers
 
-(defmacro spacemacs|add-local-company-backend (mode backend &optional with-yas)
-  "Helper macro to add local `company-mode' BACKEND for MODE.
+(defmacro spacemacs|defvar-company-backends (mode)
+  "Define a MODE specific company backend variable with default backends.
+The variable name format is company-backends-MODE."
+  `(defvar ,(intern (format "company-backends-%S" mode))
+     '((company-dabbrev-code company-gtags company-etags company-keywords)
+       company-files company-dabbrev)
+     ,(format "Company backend list for %S" mode)))
 
-If WITH-YAS is non nil then the the `company-yasnippet' is consed to BACKEND."
+(defmacro spacemacs|add-company-hook (mode)
+  "Enable company for the given MODE.
+MODE must match the symbol passed in `spacemacs|defvar-company-backends'.
+The initialization function is hooked to `MODE-hook'."
   (let ((mode-hook (intern (format "%S-hook" mode)))
-        (add-backend (intern (format "spacemacs//%S-add-%S-backend"
-                                     mode backend)))
-        (backend2 (if with-yas
-                      `(spacemacs/company-backend-with-yas ',backend)
-                    `(quote ,backend))))
-    `(when (configuration-layer/layer-declaredp 'company-mode)
-       (add-hook ',mode-hook
-                 'spacemacs//make-company-backends-buffer-local)
-       (defun ,add-backend ()
-         ,(format "Add %S backend to %S" backend mode)
-         (add-to-list 'company-backends ,backend2))
-       ;; important to append this function to the hook in order to
-       ;; execute it at the end
-       (add-hook ',mode-hook ',add-backend t))))
+        (func (intern (format "spacemacs//init-company-%S" mode))))
+    `(when (configuration-layer/package-usedp 'company)
+       (defun ,func ()
+         ,(format "Initialize company for %S" mode)
+         (set (make-variable-buffer-local 'auto-completion-front-end)
+              'company)
+         (set (make-variable-buffer-local 'company-backends)
+              ,(intern (format "company-backends-%S" mode))))
+       (add-hook ',mode-hook ',func)
+       (add-hook ',mode-hook 'company-mode))))
+
+(defmacro spacemacs|disable-company (mode)
+  "Disable company for the given MODE.
+MODE parameter must match the parameter used in the call to
+`spacemacs|add-company-hook'."
+)
+
+(defmacro spacemacs|enable-auto-complete (mode)
+  "Enable auto-complete for the given MODE.
+The initialization function is hooked to `MODE-hook'."
+  (let ((mode-hook (intern (format "%S-hook" mode)))
+        (func (intern (format "spacemacs//init-auto-complete-%S" mode))))
+    `(when (configuration-layer/package-usedp 'auto-complete)
+       (defun ,func ()
+         ,(format "Initialize auto-complete for %S" mode)
+         (set (make-variable-buffer-local 'auto-completion-front-end)
+              'auto-complete)
+         (set (make-variable-buffer-local 'company-backends)
+              ,(intern (format "company-backends-%S" mode))))
+       (add-hook ',mode-hook ',func)
+       (add-hook ',mode-hook 'auto-complete-mode))))
+
+;; end Auto-completion helpers
