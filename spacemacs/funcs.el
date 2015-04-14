@@ -220,6 +220,21 @@ the current state and point position."
         (setq p2 (point))))
     (set-mark p1)))
 
+;; eval lisp helpers
+(defun spacemacs/eval-region ()
+  (interactive)
+  (eval-region (region-beginning) (region-end))
+  (evil-normal-state))
+
+;; idea from http://www.reddit.com/r/emacs/comments/312ge1/i_created_this_function_because_i_was_tired_of/
+(defun spacemacs/eval-current-form ()
+  "Looks for the current def* or set* command then evaluates, unlike `eval-defun', does not go to topmost function"
+  (interactive)
+  (save-excursion
+    (search-backward-regexp "(def\\|(set")
+    (forward-list)
+    (call-interactively 'eval-last-sexp)))
+
 ;; from magnars
 (defun eval-and-replace ()
   "Replace the preceding sexp with its value."
@@ -798,8 +813,7 @@ If ASCII si not provided then UNICODE is used instead."
      ((system-is-mswindows) (w32-shell-execute "open" (replace-regexp-in-string "/" "\\" file-path)))
      ((system-is-mac) (shell-command (format "open \"%s\"" file-path)))
      ((system-is-linux) (let ((process-connection-type nil))
-                          (start-process "" nil "xdg-open" file-path)))
-     )))
+                          (start-process "" nil "xdg-open" file-path))))))
 
 (defun spacemacs/next-error (&optional n reset)
   "Dispatch to flycheck or standard emacs error."
@@ -827,52 +841,3 @@ If ASCII si not provided then UNICODE is used instead."
   (interactive)
   (let ((comint-buffer-maximum-size 0))
     (comint-truncate-buffer)))
-
-;; begin Auto-completion helpers
-
-(defmacro spacemacs|defvar-company-backends (mode)
-  "Define a MODE specific company backend variable with default backends.
-The variable name format is company-backends-MODE."
-  `(defvar ,(intern (format "company-backends-%S" mode))
-     '((company-dabbrev-code company-gtags company-etags company-keywords)
-       company-files company-dabbrev)
-     ,(format "Company backend list for %S" mode)))
-
-(defmacro spacemacs|add-company-hook (mode)
-  "Enable company for the given MODE.
-MODE must match the symbol passed in `spacemacs|defvar-company-backends'.
-The initialization function is hooked to `MODE-hook'."
-  (let ((mode-hook (intern (format "%S-hook" mode)))
-        (func (intern (format "spacemacs//init-company-%S" mode))))
-    `(when (configuration-layer/package-usedp 'company)
-       (defun ,func ()
-         ,(format "Initialize company for %S" mode)
-         (set (make-variable-buffer-local 'auto-completion-front-end)
-              'company)
-         (set (make-variable-buffer-local 'company-backends)
-              ,(intern (format "company-backends-%S" mode))))
-       (add-hook ',mode-hook ',func)
-       (add-hook ',mode-hook 'company-mode))))
-
-(defmacro spacemacs|disable-company (mode)
-  "Disable company for the given MODE.
-MODE parameter must match the parameter used in the call to
-`spacemacs|add-company-hook'."
-)
-
-(defmacro spacemacs|enable-auto-complete (mode)
-  "Enable auto-complete for the given MODE.
-The initialization function is hooked to `MODE-hook'."
-  (let ((mode-hook (intern (format "%S-hook" mode)))
-        (func (intern (format "spacemacs//init-auto-complete-%S" mode))))
-    `(when (configuration-layer/package-usedp 'auto-complete)
-       (defun ,func ()
-         ,(format "Initialize auto-complete for %S" mode)
-         (set (make-variable-buffer-local 'auto-completion-front-end)
-              'auto-complete)
-         (set (make-variable-buffer-local 'company-backends)
-              ,(intern (format "company-backends-%S" mode))))
-       (add-hook ',mode-hook ',func)
-       (add-hook ',mode-hook 'auto-complete-mode))))
-
-;; end Auto-completion helpers

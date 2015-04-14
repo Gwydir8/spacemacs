@@ -42,7 +42,6 @@
     evil-nerd-commenter
     evil-matchit
     evil-numbers
-    evil-org
     evil-search-highlight-persist
     evil-surround
     evil-terminal-cursor-changer
@@ -53,8 +52,6 @@
     fancy-battery
     fill-column-indicator
     flx-ido
-    flycheck
-    flycheck-pos-tip
     flyspell
     fringe-helper
     golden-ratio
@@ -70,7 +67,6 @@
     ;; not working for now
     ;; helm-proc
     helm-projectile
-    helm-pt
     helm-swoop
     helm-themes
     highlight-indentation
@@ -88,8 +84,6 @@
     move-text
     multi-term
     neotree
-    org
-    org-bullets
     page-break-lines
     popup
     popwin
@@ -936,17 +930,6 @@ which require an initialization must be listed explicitly in the list.")
       (evil-leader/set-key "n+" 'spacemacs/evil-numbers-increase)
       (evil-leader/set-key "n-" 'spacemacs/evil-numbers-decrease))))
 
-(defun spacemacs/init-evil-org ()
-  (use-package evil-org
-    :commands evil-org-mode
-    :init
-    (add-hook 'org-mode-hook 'evil-org-mode)
-    :config
-    (progn
-      ;; to gather all the bindings at the same place the bindnings
-      ;; for evil-org have been moved to `spacemacs/init-org'
-      (spacemacs|diminish evil-org-mode " ⓔ" " e"))))
-
 (defun spacemacs/init-evil-search-highlight-persist ()
   (use-package evil-search-highlight-persist
     :init
@@ -1098,116 +1081,6 @@ which require an initialization must be listed explicitly in the list.")
 (defun spacemacs/init-flx-ido ()
   (use-package flx-ido
     :init (flx-ido-mode 1)))
-
-(defun spacemacs/init-flycheck ()
-  (use-package flycheck
-    :defer t
-    :init
-    (progn
-      (setq flycheck-check-syntax-automatically '(save mode-enabled)
-            flycheck-standard-error-navigation nil)
-      (spacemacs|add-toggle syntax-checking
-                            :status flycheck-mode
-                            :on (flycheck-mode)
-                            :off (flycheck-mode -1)
-                            :documentation "Enable error and syntax checking."
-                            :evil-leader "tf")
-      (spacemacs|add-toggle syntax-checking-globally
-                            :status flycheck-mode
-                            :on (global-flycheck-mode)
-                            :off (global-flycheck-mode -1)
-                            :documentation
-                            "Enable error and syntax checking globally."
-                            :evil-leader "t C-f"))
-    :config
-    (progn
-      (spacemacs|diminish flycheck-mode " ⓕ" " f")
-
-      (defun spacemacs/mode-line-flycheck-info-toggle ()
-        "Toggle display of flycheck info."
-        (interactive)
-        (if flycheck-mode
-            (flycheck-mode -1)
-          (flycheck-mode)))
-      (evil-leader/set-key "tmf" 'spacemacs/mode-line-flycheck-info-toggle)
-
-      ;; color mode line faces
-      (defun spacemacs/defface-flycheck-mode-line-color (state)
-        "Define a face for the given Flycheck STATE."
-        (let* ((fname (intern (format "spacemacs-mode-line-flycheck-%s-face"
-                                      (symbol-name state))))
-              (foreground (face-foreground
-                           (intern (format "flycheck-fringe-%s" state)))))
-          (eval `(defface ,fname '((t ()))
-                   ,(format "Color for Flycheck %s feedback in mode line."
-                            (symbol-name state))
-                   :group 'spacemacs))
-          (set-face-attribute fname nil
-                              :foreground foreground
-                              :box (face-attribute 'mode-line :box))))
-
-      (defun spacemacs/set-flycheck-mode-line-faces ()
-        "Define or set the flycheck info mode-line faces."
-        (mapcar 'spacemacs/defface-flycheck-mode-line-color
-                '(error warning info)))
-      (spacemacs/set-flycheck-mode-line-faces)
-
-      (defmacro spacemacs|custom-flycheck-lighter (error)
-        "Return a formatted string for the given ERROR (error, warning, info)."
-        `(let* ((error-counts (flycheck-count-errors
-                               flycheck-current-errors))
-                (errorp (flycheck-has-current-errors-p ',error))
-                (err (or (cdr (assq ',error error-counts)) "?"))
-                (running (eq 'running flycheck-last-status-change)))
-           (if (or errorp running) (format "•%s " err))))
-
-      ;; Custom fringe indicator
-      (when (fboundp 'define-fringe-bitmap)
-        (define-fringe-bitmap 'my-flycheck-fringe-indicator
-          (vector #b00000000
-                  #b00000000
-                  #b00000000
-                  #b00000000
-                  #b00000000
-                  #b00000000
-                  #b00000000
-                  #b00011100
-                  #b00111110
-                  #b00111110
-                  #b00111110
-                  #b00011100
-                  #b00000000
-                  #b00000000
-                  #b00000000
-                  #b00000000
-                  #b01111111)))
-
-      (flycheck-define-error-level 'error
-        :overlay-category 'flycheck-error-overlay
-        :fringe-bitmap 'my-flycheck-fringe-indicator
-        :fringe-face 'flycheck-fringe-error)
-
-      (flycheck-define-error-level 'warning
-        :overlay-category 'flycheck-warning-overlay
-        :fringe-bitmap 'my-flycheck-fringe-indicator
-        :fringe-face 'flycheck-fringe-warning)
-
-      (flycheck-define-error-level 'info
-        :overlay-category 'flycheck-info-overlay
-        :fringe-bitmap 'my-flycheck-fringe-indicator
-        :fringe-face 'flycheck-fringe-info)
-
-      ;; key bindings
-      (evil-leader/set-key
-        "ec" 'flycheck-clear
-        "ef" 'flycheck-mode
-        "el" 'flycheck-list-errors))))
-
-(defun spacemacs/init-flycheck-pos-tip ()
-  (use-package flycheck-pos-tip
-    :defer t
-    :init
-    (setq flycheck-display-errors-function 'flycheck-pos-tip-error-messages)))
 
 (defun spacemacs/init-flyspell ()
   (use-package flyspell
@@ -1381,11 +1254,20 @@ which require an initialization must be listed explicitly in the list.")
             helm-always-two-windows     t)
 
       (defun spacemacs/helm-do-ack ()
-        "Perform a search using ack."
+        "Perform a search with ack using `helm-ag.'"
         (interactive)
-        (let ((helm-grep-default-command "ack -Hn --no-group %e %p %f")
-              (helm-grep-default-recurse-command "ack -H --no-group %e %p %f"))
-          (helm-do-grep)))
+        (if (configuration-layer/package-usedp 'helm-ag)
+            (let ((helm-ag-base-command "ack --nocolor --nogroup"))
+              (call-interactively 'helm-do-ag))
+          (message "error: helm-ag not found.")))
+
+      (defun spacemacs/helm-do-pt ()
+        "Perform a search with the platinum searcher using `helm-ag.'"
+        (interactive)
+        (if (configuration-layer/package-usedp 'helm-ag)
+            (let ((helm-ag-base-command "pt --nocolor --nogroup"))
+              (call-interactively 'helm-do-ag))
+          (message "error: helm-ag not found.")))
 
       (defun spacemacs/helm-do-search-dwim (&optional arg)
         "Execute the first found search tool.
@@ -1398,8 +1280,7 @@ ignored)."
          (if arg
              (cond (((executable-find "ack") 'spacemacs/helm-do-ack)
                     (t 'helm-do-grep)))
-           (cond ((and (configuration-layer/package-usedp 'helm-pt)
-                       (executable-find "pt")) 'helm-do-pt)
+           (cond ((executable-find "pt") 'spacemacs/helm-do-pt)
                  ((executable-find "ag") 'helm-do-ag)
                  ((executable-find "ack") 'spacemacs/helm-do-ack)
                  (t 'helm-do-grep)))))
@@ -1425,6 +1306,7 @@ ignored)."
         "sa"  'helm-do-ag
         "sg"  'helm-do-grep
         "sk"  'spacemacs/helm-do-ack
+        "sp"  'spacemacs/helm-do-pt
         "sl"  'helm-semantic-or-imenu)
 
       ;; define the key binding at the very end in order to allow the user
@@ -1521,6 +1403,13 @@ ARG non nil means that the editing style is `vim'."
       ;;shell
       (evil-leader/set-key-for-mode 'shell-mode "mH" 'spacemacs/helm-shell-history)
 
+      (defun spacemacs/helm-edit ()
+        "Switch in edit mode depending on the current helm buffer."
+        (interactive)
+        (cond
+         ((string-equal "*helm-ag*" helm-buffer)
+          (helm-ag-edit))))
+
       (defun spacemacs//helm-navigation-ms-on-enter ()
         "Initialization of helm micro-state."
         ;; faces
@@ -1559,6 +1448,7 @@ ARG non nil means that the editing style is `vim'."
         "
   [?]          display this help
   [a]          toggle action selection page
+  [e]          edit occurrences if supported
   [j] [k]      next/previous candidate
   [h] [l]      previous/next source
   [t]          toggle visible mark
@@ -1580,6 +1470,7 @@ ARG non nil means that the editing style is `vim'."
         ("<RET>" helm-maybe-exit-minibuffer :exit t)
         ("?" nil :doc (spacemacs//helm-navigation-ms-full-doc))
         ("a" helm-select-action :post (spacemacs//helm-navigation-ms-set-face))
+        ("e" spacemacs/helm-edit)
         ("h" helm-previous-source)
         ("j" helm-next-line)
         ("k" helm-previous-line)
@@ -1594,7 +1485,15 @@ ARG non nil means that the editing style is `vim'."
 
 (defun spacemacs/init-helm-ag ()
   (use-package helm-ag
-    :defer t))
+    :defer t
+    :init
+    (progn
+      (defun spacemacs/helm-do-ack ()
+
+        )
+      )
+    :config
+    (evil-define-key 'normal helm-ag-map "SPC" evil-leader--default-map)))
 
 (defun spacemacs/init-helm-c-yasnippet ()
   (use-package helm-c-yasnippet
@@ -1659,6 +1558,14 @@ ARG non nil means that the editing style is `vim'."
       (defconst spacemacs-use-helm-projectile t
         "This variable is only defined if helm-projectile is used.")
 
+      (defun spacemacs/helm-projectile-pt ()
+        "Perform a search with the platinum searcher using `helm-projectile.'"
+        (interactive)
+        (if (configuration-layer/package-usedp 'helm-ag)
+            (let ((helm-ag-base-command "pt -e --nocolor --nogroup"))
+              (call-interactively 'helm-projectile-ag))
+          (message "error: helm-ag not found.")))
+
       (defun spacemacs/helm-projectile-search-dwim (&optional arg)
         "Execute the first found search tool.
 
@@ -1670,8 +1577,7 @@ ignored)."
          (if arg
              (cond (((executable-find "ack") 'helm-projectile-ack)
                     (t 'helm-projectile-grep)))
-           (cond ((and (configuration-layer/package-usedp 'helm-pt)
-                       (executable-find "pt")) 'helm-projectile-pt)
+           (cond ((executable-find "pt") 'spacemacs/helm-projectile-pt)
                  ((executable-find "ag") 'helm-projectile-ag)
                  ((executable-find "ack") 'spacemacs/helm-projectile-ack)
                  (t 'helm-projectile-grep)))))
@@ -1687,15 +1593,8 @@ ignored)."
         "psa" 'helm-projectile-ag
         "psg" 'helm-projectile-grep
         "psk" 'helm-projectile-ack
+        "psp" 'helm-projectile-pt
         "pv"  'helm-projectile-vc))))
-
-(defun spacemacs/init-helm-pt ()
-  (use-package helm-pt
-    :defer t
-    :init
-    (evil-leader/set-key
-      "psp" 'helm-projectile-pt
-      "sp" 'helm-do-pt)))
 
 (defun spacemacs/init-helm-swoop ()
   (use-package helm-swoop
@@ -2105,49 +2004,6 @@ Put (global-hungry-delete-mode) in dotspacemacs/config to enable by default."
     (add-to-hook 'neotree-mode-hook '(spacemacs//init-neotree
                                       spacemacs//neotree-key-bindings))))
 
-(defun spacemacs/init-org ()
-  (use-package org
-    :mode ("\\.org$" . org-mode)
-    :defer t
-    :init
-    (progn
-      (setq org-log-done t)
-      (add-hook 'org-mode-hook 'org-indent-mode)
-      (evil-leader/set-key-for-mode 'org-mode
-        "mc" 'org-capture
-        "md" 'org-deadline
-        "me" 'org-export-dispatch
-        "mi" 'org-clock-in
-        "mo" 'org-clock-out
-        "mm" 'org-ctrl-c-ctrl-c
-        "mr" 'org-refile
-        "ms" 'org-schedule)
-      (eval-after-load 'evil-org
-        ;; move the leader bindings to `m` prefix to be consistent with
-        ;; the rest of spacemacs bindings
-        '(evil-leader/set-key-for-mode 'org-mode
-           "a" nil "ma" 'org-agenda
-           "c" nil "mA" 'org-archive-subtree
-           "o" nil "mC" 'evil-org-recompute-clocks
-           "l" nil "ml" 'evil-org-open-links
-           "t" nil "mt" 'org-show-todo-tree)))
-    :config
-    (progn
-      (require 'org-install)
-      (define-key global-map "\C-cl" 'org-store-link)
-      (define-key global-map "\C-ca" 'org-agenda)))
-
-  (eval-after-load "org-agenda"
-    '(progn
-       (define-key org-agenda-mode-map "j" 'org-agenda-next-line)
-       (define-key org-agenda-mode-map "k" 'org-agenda-previous-line)
-       (define-key org-agenda-mode-map (kbd "SPC") evil-leader--default-map))))
-
-(defun spacemacs/init-org-bullets ()
-  (use-package org-bullets
-    :defer t
-    :init (add-hook 'org-mode-hook 'org-bullets-mode)))
-
 (defun spacemacs/init-page-break-lines ()
   (use-package page-break-lines
     :init
@@ -2202,7 +2058,6 @@ Put (global-hungry-delete-mode) in dotspacemacs/config to enable by default."
       (push '("*ert*"                      :dedicated t :position bottom :stick t :noselect t) popwin:special-display-config)
       (push '("*grep*"                     :dedicated t :position bottom :stick t :noselect t) popwin:special-display-config)
       (push '("*nosetests*"                :dedicated t :position bottom :stick t :noselect t) popwin:special-display-config)
-      (push '("^\*Flycheck.+\*$" :regexp t :dedicated t :position bottom :stick t :noselect t) popwin:special-display-config)
       (push '("^\*WoMan.+\*$"    :regexp t              :position bottom                     ) popwin:special-display-config)
       (defun spacemacs/remove-popwin-display-config (str)
         "Removes the popwin display configurations that matches the passed STR"
@@ -2889,13 +2744,6 @@ It is a string holding:
                             :off (yas-minor-mode -1)
                             :documentation "Enable yasnippet."
                             :evil-leader "ty")
-
-      (spacemacs|add-toggle yasnippet-globally
-                            :status yas-minor-mode
-                            :on (yas-global-mode)
-                            :off (yas-global-mode -1)
-                            :documentation "Enable yasnippet globally."
-                            :evil-leader "t C-y")
 
       (defun spacemacs/force-yasnippet-off ()
         (yas-minor-mode -1)

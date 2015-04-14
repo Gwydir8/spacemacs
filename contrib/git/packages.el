@@ -21,6 +21,7 @@
     git-timemachine
     gist
     github-browse-file
+    git-link
     ;; not up to date
     ;; helm-gist
     magit
@@ -71,7 +72,14 @@ which require an initialization must be listed explicitly in the list.")
   (spacemacs|hide-lighter git-gutter-mode)
   (if (and (not git-gutter-use-fringe)
            global-linum-mode)
-      (git-gutter:linum-setup)))
+      (git-gutter:linum-setup))
+  (with-eval-after-load (or 'git-gutter 'git-gutter-fringe)
+    (evil-leader/set-key
+      "ghs" 'git-gutter:stage-hunk
+      "ghr" 'git-gutter:revert-hunk
+      "ghN" 'git-gutter:previous-hunk
+      "ghn" 'git-gutter:next-hunk
+      "ghp" 'git-gutter:popup-hunk)))
 
 (defun git/init-git-gutter ()
   (use-package git-gutter
@@ -101,34 +109,29 @@ which require an initialization must be listed explicitly in the list.")
       (setq git-gutter:hide-gutter t)
       ;; Don't need log/message.
       (setq git-gutter:verbosity 0)
-      (evil-leader/set-key
-        "ghs" 'git-gutter:stage-hunk
-        "ghr" 'git-gutter:revert-hunk
-        "ghN" 'git-gutter:previous-hunk
-        "ghn" 'git-gutter:next-hunk)
       ;; (setq git-gutter:update-hooks '(after-save-hook after-revert-hook))
       ;; custom graphics that works nice with half-width fringes
       (fringe-helper-define 'git-gutter-fr:added nil
-        "..X...."
-        "..X...."
-        "XXXXX.."
-        "..X...."
-        "..X...."
-        )
+                            "..X...."
+                            "..X...."
+                            "XXXXX.."
+                            "..X...."
+                            "..X...."
+                            )
       (fringe-helper-define 'git-gutter-fr:deleted nil
-        "......."
-        "......."
-        "XXXXX.."
-        "......."
-        "......."
-        )
+                            "......."
+                            "......."
+                            "XXXXX.."
+                            "......."
+                            "......."
+                            )
       (fringe-helper-define 'git-gutter-fr:modified nil
-        "..X...."
-        ".XXX..."
-        "XXXXX.."
-        ".XXX..."
-        "..X...."
-        ))))
+                            "..X...."
+                            ".XXX..."
+                            "XXXXX.."
+                            ".XXX..."
+                            "..X...."
+                            ))))
 
 (defun git/init-git-messenger ()
   (use-package git-messenger
@@ -222,7 +225,8 @@ which require an initialization must be listed explicitly in the list.")
             magit-completing-read-function 'magit-ido-completing-read)
       ;; On Windows, we must use Git GUI to enter username and password
       ;; See: https://github.com/magit/magit/wiki/FAQ#windows-cannot-push-via-https
-      (setenv "GIT_ASKPASS" "git-gui--askpass")
+      (when (eq window-system 'w32)
+        (setenv "GIT_ASKPASS" "git-gui--askpass"))
       (evil-leader/set-key
         "gb" 'magit-blame-mode
         "gl" 'magit-log
@@ -321,6 +325,33 @@ which require an initialization must be listed explicitly in the list.")
     :init
     (evil-leader/set-key
       "gfb" 'github-browse-file)))
+
+(defun git/init-git-link ()
+  (use-package git-link
+    :if git-enable-github-support
+    :defer t
+    :init
+    (progn
+
+      (defun spacemacs/git-link-copy-url-only ()
+        "Only copy the generated link to the kill ring."
+        (interactive)
+        (let (git-link-open-in-browser)
+          (call-interactively 'git-link)))
+
+      (defun spacemacs/git-link-commit-copy-url-only ()
+        "Only copy the generated link to the kill ring."
+        (interactive)
+        (let (git-link-open-in-browser)
+          (call-interactively 'git-link-commit)))
+
+      (evil-leader/set-key
+        "gfl" 'git-link
+        "gfL" 'spacemacs/git-link-copy-url-only
+        "gfc" 'git-link-commit
+        "gfC" 'spacemacs/git-link-commit-copy-url-only)
+      ;; default is to open the generated link
+      (setq git-link-open-in-browser t))))
 
 (defun git/init-magit-gitflow ()
   (use-package magit-gitflow
